@@ -70,6 +70,8 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
     private Preference mGamePropsSpoof;
     private Preference mWikiLink;
     private Preference mUpdateJsonButton;
+    private Preference mUpdateGamePropsButton;
+
 
     private Handler mHandler;
 
@@ -88,6 +90,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
         mPifJsonFilePreference = findPreference(KEY_PIF_JSON_FILE_PREFERENCE);
         mGamePropsJsonFilePreference = findPreference(KEY_GAME_PROPS_JSON_FILE_PREFERENCE);
         mUpdateJsonButton = findPreference(KEY_UPDATE_JSON_BUTTON);
+        mUpdateGamePropsButton = findPreference("update_game_props_json");
 
         String model = SystemProperties.get("ro.product.model");
         isPixelDevice = SystemProperties.get("ro.soc.manufacturer").equals("Google");
@@ -105,6 +108,11 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
 
         mPifJsonFilePreference.setOnPreferenceClickListener(preference -> {
             openFileSelector(10001);
+            return true;
+        });
+
+        mUpdateGamePropsButton.setOnPreferenceClickListener(preference -> {
+            updateGamePropsFromUrl("https://raw.githubusercontent.com/Neroxd10/GameProps/refs/heads/main/GamesProps.json");
             return true;
         });
 
@@ -228,6 +236,48 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
             }
             mHandler.postDelayed(() -> {
             SystemRestartUtils.showSystemRestartDialog(getContext());
+            }, 1250);
+        }).start();
+    }
+
+    private void updateGamePropsFromUrl(String urlString) {
+        new Thread(() -> {
+            try {
+                URL url = new URL(urlString);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                try (InputStream inputStream = urlConnection.getInputStream()) {
+                    String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                    Log.d(TAG, "Downloaded GameProps JSON data: " + json);
+                    JSONObject jsonObject = new JSONObject(json);
+                    for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
+                        String key = it.next();
+                        if (key.startsWith("PACKAGES_") && !key.endsWith("_DEVICE")) {
+                            String deviceKey = key + "_DEVICE";
+                            if (jsonObject.has(deviceKey)) {
+                                JSONObject deviceProps = jsonObject.getJSONObject(deviceKey);
+                                JSONArray packages = jsonObject.getJSONArray(key);
+                                for (int i = 0; i < packages.length(); i++) {
+                                    String packageName = packages.getString(i);
+                                    Log.d(TAG, "Spoofing game package: " + packageName);
+                                    setGameProps(packageName, deviceProps);
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    urlConnection.disconnect();
+                }
+                mHandler.post(() -> {
+                    Toast.makeText(getContext(), R.string.toast_gameprops_update_success, Toast.LENGTH_LONG).show();
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error downloading GameProps JSON or setting properties", e);
+                mHandler.post(() -> {
+                    Toast.makeText(getContext(), R.string.toast_gameprops_update_failure, Toast.LENGTH_LONG).show();
+                });
+            }
+            mHandler.postDelayed(() -> {
+                SystemRestartUtils.showSystemRestartDialog(getContext());
             }, 1250);
         }).start();
     }

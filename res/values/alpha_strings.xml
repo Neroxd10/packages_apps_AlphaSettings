@@ -445,4 +445,7 @@
     <string name="help_footer_title">Spoofing Guides</string>
     <string name="help_footer_summary">Visit our wiki for detailed guides and support.</string>
 
+    <string name="toast_gameprops_update_success">Game Props updated successfully!</string>
+    <string name="toast_gameprops_update_failure">Failed to update Game Props.</string>
+
 </resources>

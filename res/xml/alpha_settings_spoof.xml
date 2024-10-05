@@ -34,7 +34,12 @@
             android:key="persist.sys.gameprops.enabled"
             android:title="@string/gameprops_title"
             android:summary="@string/gameprops_summary"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
+        
+        <Preference
+            android:key="update_game_props_json"
+            android:title="Update Game Props"
+            android:summary="Update game spoofing properties from a JSON file" />
 
         <Preference
             android:key="game_props_json_file_preference"
