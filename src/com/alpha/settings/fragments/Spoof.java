@@ -132,7 +132,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
         }
         
         mUpdateJsonButton.setOnPreferenceClickListener(preference -> {
-            updatePropertiesFromUrl("https://raw.githubusercontent.com/chiteroman/PlayIntegrityFix/main/module/pif.json");
+            updatePropertiesFromUrl("https://raw.githubusercontent.com/Neroxd10/GameProps/refs/heads/main/pif.json");
             return true;
         });
         
