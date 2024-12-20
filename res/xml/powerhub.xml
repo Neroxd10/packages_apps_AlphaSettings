@@ -89,6 +89,7 @@
             android:icon="@drawable/ic_powerhub_misc_settings"/>
 
 
+
         <!-- Device Part -->
         <Preference
             android:key="device_part"
