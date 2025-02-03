@@ -27,11 +27,10 @@ import android.os.SystemProperties;
 import android.util.Log;
 import android.widget.Toast;
 import android.provider.Settings;
-
+import android.app.ActivityManager;
 import androidx.preference.Preference;
 
 import com.android.internal.logging.nano.MetricsProto;
-import com.android.internal.util.alpha.SystemRestartUtils;
 import com.android.settings.R;
 import com.android.settings.SettingsPreferenceFragment;
 import com.android.settings.search.BaseSearchIndexProvider;
@@ -235,7 +234,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                 });
             }
             mHandler.postDelayed(() -> {
-            SystemRestartUtils.showSystemRestartDialog(getContext());
+            forceStopPackage("com.google.android.gms");
             }, 1250);
         }).start();
     }
@@ -260,6 +259,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                                     String packageName = packages.getString(i);
                                     Log.d(TAG, "Spoofing game package: " + packageName);
                                     setGameProps(packageName, deviceProps);
+                                    forceStopPackage(packageName);
                                 }
                             }
                         }
@@ -277,9 +277,22 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                 });
             }
             mHandler.postDelayed(() -> {
-                SystemRestartUtils.showSystemRestartDialog(getContext());
+                Toast.makeText(getContext(), "Successfully Import GameSpoof", Toast.LENGTH_SHORT).show();
             }, 1250);
         }).start();
+    }
+    
+    private void forceStopPackage(String packageName) {
+        ActivityManager activityManager = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager != null) {
+            try {
+                // Force stop the specified package
+                activityManager.forceStopPackage(packageName);
+                Log.d(TAG, "Force stopped package: " + packageName);
+            } catch (Exception e) {
+                Log.e(TAG, "Error force stopping package: " + packageName, e);
+            }
+        }
     }
 
     private void loadPifJson(Uri uri) {
@@ -295,12 +308,15 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                     Log.d(TAG, "Setting PIF property: persist.sys.pihooks_" + key + " = " + value);
                     SystemProperties.set("persist.sys.pihooks_" + key, value);
                 }
+                mHandler.post(() -> {
+                    Toast.makeText(getContext(), "Successfully Import PIF", Toast.LENGTH_SHORT).show();
+                });
             }
         } catch (Exception e) {
             Log.e(TAG, "Error reading PIF JSON or setting properties", e);
         }
         mHandler.postDelayed(() -> {
-            SystemRestartUtils.showSystemRestartDialog(getContext());
+            forceStopPackage("com.google.android.gms");
         }, 1250);
     }
 
@@ -322,6 +338,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                                 String packageName = packages.getString(i);
                                 Log.d(TAG, "Spoofing package: " + packageName);
                                 setGameProps(packageName, deviceProps);
+                                forceStopPackage(packageName);
                             }
                         }
                     }
@@ -331,7 +348,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
             Log.e(TAG, "Error reading Game Props JSON or setting properties", e);
         }
         mHandler.postDelayed(() -> {
-            SystemRestartUtils.showSystemRestartDialog(getContext());
+            Toast.makeText(getContext(), "Successfully Import GameSpoof", Toast.LENGTH_SHORT).show();
         }, 1250);
     }
 
@@ -355,7 +372,6 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
             || preference == mPropOptions
             || preference == mGphotosSpoof
             || preference == mGamePropsSpoof) {
-            SystemRestartUtils.showSystemRestartDialog(getContext());
             return true;
         }
         return false;
