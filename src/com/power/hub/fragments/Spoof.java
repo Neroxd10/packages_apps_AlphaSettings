@@ -277,7 +277,7 @@ public class Spoof extends SettingsPreferenceFragment implements Preference.OnPr
                 });
             }
             mHandler.postDelayed(() -> {
-                oast.makeText(getContext(), "Successfully Import GameSpoof", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Successfully Import GameSpoof", Toast.LENGTH_SHORT).show();
             }, 1250);
         }).start();
     }
